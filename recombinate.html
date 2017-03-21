@@ -1,0 +1,202 @@
+<! DOCTYPE />
+
+<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link href="style.css" rel="stylesheet" title="Default Style">
+</head>
+
+
+
+<body>
+
+	<div id="item">
+	
+		<div id="sauce"></div>
+
+		<div id="topping"></div>
+
+		<div id="filling"></div>
+
+		<div id="meat"></div>
+
+		<div id="exterior"></div>
+
+		<div id="drink"></div>
+		
+	</div>
+	
+<!--	<form> 
+	<p>Select your mode:</p>
+	<input id = "regular" type="radio" name="mode" value="Regular" checked> Regular<br>
+	<input id="loco" type="radio" name="mode" value="Loco"> Loco<br>
+	<input id="super-loco" type="radio" name="mode" value="Super-Loco"> Super Loco
+	
+	</form> -->
+	
+	<div id="recombo"><button>Recombinate!</button></div>
+	
+	
+
+</body>
+
+<script>
+	
+	// generate a random number
+	function getRandomInt(min, max) {
+  		min = Math.ceil(min);
+  		max = Math.floor(max);
+ 	 	return Math.floor(Math.random() * (max - min + 1)) + min;
+	}
+	
+	function getIngredient(ingredientList) {
+		random = getRandomInt(0, (ingredientList.length-1));
+		randIng = ingredientList[random];
+		return randIng;
+	}
+	
+	var sauceArray = [];
+	var meatArray = [];
+	var extArray = [];
+	var toppingArray = [];
+	var fillingArray = [];
+	var random;
+	
+	// get JSON file from server
+	$.getJSON("ingredients.json", function(data) {
+		
+		console.log(data);
+	
+		// spit out a random sauce
+		//var sauce = getRandomIntInclusive(0,1);
+		
+		// group each ingredient into an array by ingredient type
+		for (key in data) {
+			console.log(data[key]);
+			
+			if (data[key].type == "sauce"){
+				console.log("found a sauce!");
+				sauceArray.push(data[key].ingredient);
+			}
+			
+			if (data[key].type == "meat"){
+				console.log("found a meat!");
+				meatArray.push(data[key].ingredient);
+			}
+
+			if (data[key].type == "exterior"){
+				console.log("found an exterior!");
+				extArray.push(data[key].ingredient);
+			}
+
+			if (data[key].type == "topping"){
+				console.log("found a topping!");
+				toppingArray.push(data[key].ingredient);
+			}
+			
+			if (data[key].type == "filling"){
+				console.log("found a filling!");
+				fillingArray.push(data[key].ingredient);
+			}						
+			
+		}
+		
+		console.log(sauceArray);
+		console.log(meatArray);
+		console.log(extArray);
+		
+		var totalHeight = $("#item").height();
+	
+	
+		$("#recombo").click(function() {
+		
+			// reset previous recombo
+			$(".ingredient").remove();
+			$("#exterior").empty();
+			$("#exterior").css("top", "-500");
+			
+			// combine all of the arrays into a master array
+			// might not need to do this if we don't split the data into categories anyway
+			var allIngredients = [];
+			allIngredients = extArray.concat(meatArray);
+			allIngredients = allIngredients.concat(sauceArray);
+			allIngredients = allIngredients.concat(toppingArray);
+			allIngredients = allIngredients.concat(fillingArray);
+			console.log(allIngredients);
+			//alert("Clicked!");
+			
+			// TO-DO: Incorporate probabilities for loco to super loco modes
+			
+			/*
+			0. Randomly determine if it should be loco or super loco
+			1. Get a random number from 3 - 7?			
+			2. Get a random exterior
+			3. Drop the exterior into place
+			
+			4. Get a random ingredient
+			5. Drop it into place
+			6. Repeat as many times as the number in step 1
+			7. Generate name 
+			
+			*/
+			
+			// Get a random number from 3 - 7
+			var numIngredients = getRandomInt(3, 7);
+			console.log("numIngredients = " + numIngredients);
+	
+			//var bottom = $("#item").height();
+			console.log("totalHeight = " + totalHeight);	
+			
+			
+			// Get a random list of ingredients, up the amount in numIngredients
+			for (var i = 0; i <= numIngredients; i++) {
+			
+				randItem = getIngredient(allIngredients);
+				
+				$("#item").append('<div class="ingredient" id="ingredient' + i + '">' + randItem + ' </div>');
+		
+			}
+			
+			// Get a random exterior
+			random = getRandomInt(0, (extArray.length-1));
+			randExt = extArray[random];
+			
+			// Drop the exterior into place, then drop the other ingredients on top of it
+			$("#exterior").html(randExt);
+			$("#exterior").animate({
+				"top": $("#item").height() - $("#exterior").height(),
+				}, 500, function() {
+					
+					totalHeight = $("#item").height() - $("#exterior").height() * 2;		
+
+					// Animate ingredient divs
+			
+					var duration = 1000;
+			
+					$('.ingredient').each(function(i) {
+						$(this).show();
+						
+						$(this).delay( i*(duration/2) ).animate({
+						"top": totalHeight - $(this).height() * (i+1),
+
+						}, 
+						duration);
+				
+						totalHeight = totalHeight - $(this).height();
+						console.log("totalHeight = " + totalHeight);
+
+					});
+				
+			});	// exterior.animate()
+					
+		
+		}); // recombinate.click()
+	
+						
+	});	// getJSON()
+	
+	//var obj = JSON.parse('[{"ingredient":"Avocado Ranch Sauce", "type":"sauce"}, {"ingredient":"Creamy Chipotle Sauce", "type":"sauce"},{"ingredient":"Fire Grilled Chicken", "type":"meat"}] ');
+	
+
+	
+	
+</script>
